@@ -1,0 +1,131 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Bill Splitter - Premium Edition</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="icon" href="assets/favicon.ico">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Smart Bill Splitter</h1>
+      <div class="theme-toggle">
+        <button id="theme-toggle">Toggle Theme</button>
+      </div>
+    </header>
+
+    <!-- Participants Section -->
+    <section id="participants">
+      <h2>Participants</h2>
+      <div class="input-group">
+        <input type="text" id="participant-name" placeholder="Enter name">
+        <button onclick="addParticipant()">Add</button>
+      </div>
+      <div id="participant-list" class="card-list"></div>
+    </section>
+
+    <!-- Items Section -->
+    <section id="items">
+      <h2>Items</h2>
+      <div class="input-group">
+        <input type="text" id="item-name" placeholder="Item name">
+        <input type="number" id="item-cost" placeholder="Cost" step="0.01">
+        <select id="item-assigned"></select>
+        <button onclick="addItem()">Add</button>
+      </div>
+      <div id="item-list" class="card-list"></div>
+    </section>
+
+    <!-- Extra Charges -->
+    <section id="extras">
+      <h2>Extra Charges</h2>
+      <div class="input-group">
+        <input type="number" id="tip-percent" placeholder="Tip %" step="0.1">
+        <input type="number" id="tax-percent" placeholder="Tax %" step="0.1">
+        <input type="number" id="custom-fee" placeholder="Custom Fee" step="0.01">
+        <button onclick="updateExtras()">Update</button>
+      </div>
+    </section>
+
+    <!-- Payments -->
+    <section id="payments">
+      <h2>Payments Made</h2>
+      <div class="input-group">
+        <select id="payment-person"></select>
+        <input type="number" id="payment-amount" placeholder="Amount Paid" step="0.01">
+        <button onclick="addPayment()">Add</button>
+      </div>
+      <div id="payment-list" class="card-list"></div>
+    </section>
+
+    <!-- Split Options -->
+    <section id="split-options">
+      <h2>Split Options</h2>
+      <div id="split-config" class="card-list"></div>
+    </section>
+
+    <!-- Results -->
+    <section id="results">
+      <h2>Results</h2>
+      <div id="result-list" class="card-list"></div>
+      <canvas id="result-chart"></canvas>
+    </section>
+
+    <!-- Actions -->
+    <section id="actions">
+      <h2>Actions</h2>
+      <div class="button-group">
+        <button onclick="calculateSplit()">Calculate</button>
+        <button onclick="saveSplit()">Save Split</button>
+        <button onclick="loadSplit()">Load Split</button>
+        <button onclick="downloadReceipt()">Download Receipt</button>
+        <button onclick="resetApp()">Reset</button>
+      </div>
+    </section>
+  </div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
