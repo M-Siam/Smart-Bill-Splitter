@@ -4,9 +4,10 @@ const payments = [];
 const splitConfigs = {};
 const extras = { tip: 0, tax: 0, customFee: 0 };
 let chartInstance = null;
-
+let chatState = { step: 'name', currentParticipant: null, currentItem: null };
 const colors = ['#ef476f', '#ffd166', '#06d6a0', '#118ab2', '#073b4c', '#8338ec'];
 
+// Core Functionality
 function addParticipant() {
   const nameInput = document.getElementById('participant-name');
   const name = nameInput.value.trim();
@@ -64,7 +65,7 @@ function updateItemList() {
   const list = document.getElementById('item-list');
   list.innerHTML = items.map((item, i) => `
     <div class="card">
-      <p>${item.name}: ₹${item.cost.toFixed(2)}</p>
+      <p>${item.name}: ৳${item.cost.toFixed(2)}</p>
       <p>Assigned: ${item.assigned || 'Unassigned'}</p>
       <button onclick="removeItem(${i})">Remove</button>
     </div>
@@ -100,7 +101,7 @@ function updatePaymentList() {
   const list = document.getElementById('payment-list');
   list.innerHTML = payments.map((payment, i) => `
     <div class="card">
-      <p>${payment.person}: ₹${payment.amount.toFixed(2)}</p>
+      <p>${payment.person}: ৳${payment.amount.toFixed(2)}</p>
       <button onclick="removePayment(${i})">Remove</button>
     </div>
   `).join('');
@@ -204,6 +205,7 @@ function calculateSplit() {
 
   displayResults(results);
   updateChart(results);
+  showView('summary-view');
 }
 
 function displayResults(results) {
@@ -211,10 +213,10 @@ function displayResults(results) {
   list.innerHTML = participants.map((name, i) => `
     <div class="card" style="border-left: 5px solid ${colors[i % colors.length]}">
       <p><strong>${name}</strong></p>
-      <p>Items: ₹${results[name].items.toFixed(2)}</p>
-      <p>Share: ₹${results[name].split.toFixed(2)}</p>
-      <p>Paid: ₹${results[name].paid.toFixed(2)}</p>
-      <p>${results[name].owes > 0 ? 'Owes' : 'Is Owed'}: ₹${Math.abs(results[name].owes).toFixed(2)}</p>
+      <p>Items: ৳${results[name].items.toFixed(2)}</p>
+      <p>Share: ৳${results[name].split.toFixed(2)}</p>
+      <p>Paid: ৳${results[name].paid.toFixed(2)}</p>
+      <p>${results[name].owes > 0 ? 'Owes' : 'Is Owed'}: ৳${Math.abs(results[name].owes).toFixed(2)}</p>
     </div>
   `).join('');
 }
@@ -238,6 +240,10 @@ function updateChart(results) {
       plugins: {
         legend: { position: 'top' },
         title: { display: true, text: 'Split Distribution' }
+      },
+      animation: {
+        animateScale: true,
+        animateRotate: true
       }
     }
   });
@@ -281,6 +287,7 @@ function resetApp() {
   extras.tip = 0;
   extras.tax = 0;
   extras.customFee = 0;
+  chatState = { step: 'name', currentParticipant: null, currentItem: null };
   updateParticipantList();
   updateItemList();
   updatePaymentList();
@@ -291,10 +298,12 @@ function resetApp() {
   document.getElementById('tax-percent').value = '';
   document.getElementById('custom-fee').value = '';
   document.getElementById('result-list').innerHTML = '';
+  document.getElementById('chat-messages').innerHTML = '';
   if (chartInstance) {
     chartInstance.destroy();
     chartInstance = null;
   }
+  showView('input-view');
 }
 
 function downloadReceipt() {
@@ -307,16 +316,16 @@ function downloadReceipt() {
   receipt += `Date: ${new Date().toLocaleString()}\n\n`;
   receipt += `Items:\n`;
   items.forEach(item => {
-    receipt += `- ${item.name}: ₹${item.cost.toFixed(2)} (${item.assigned || 'Unassigned'})\n`;
+    receipt += `- ${item.name}: ৳${item.cost.toFixed(2)} (${item.assigned || 'Unassigned'})\n`;
   });
   receipt += `\nExtras:\n`;
-  receipt += `Tip (${extras.tip}%): ₹${tipAmount.toFixed(2)}\n`;
-  receipt += `Tax (${extras.tax}%): ₹${taxAmount.toFixed(2)}\n`;
-  receipt += `Custom Fee: ₹${extras.customFee.toFixed(2)}\n`;
-  receipt += `Total: ₹${total.toFixed(2)}\n\n`;
+  receipt += `Tip (${extras.tip}%): ৳${tipAmount.toFixed(2)}\n`;
+  receipt += `Tax (${extras.tax}%): ৳${taxAmount.toFixed(2)}\n`;
+  receipt += `Custom Fee: ৳${extras.customFee.toFixed(2)}\n`;
+  receipt += `Total: ৳${total.toFixed(2)}\n\n`;
   receipt += `Payments:\n`;
   payments.forEach(payment => {
-    receipt += `- ${payment.person}: ₹${payment.amount.toFixed(2)}\n`;
+    receipt += `- ${payment.person}: ৳${payment.amount.toFixed(2)}\n`;
   });
   receipt += `\nSplit Configuration:\n`;
   participants.forEach(name => {
@@ -336,6 +345,7 @@ function downloadReceipt() {
 function setTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
   localStorage.setItem('theme', theme);
+  document.getElementById('theme-toggle').textContent = theme === 'dark' ? '☀️' : '🌙';
 }
 
 function toggleTheme() {
@@ -343,10 +353,159 @@ function toggleTheme() {
   setTheme(currentTheme === 'dark' ? 'light' : 'dark');
 }
 
-// Auto Theme based on time
 function setAutoTheme() {
   const hour = new Date().getHours();
   setTheme(hour >= 18 || hour < 6 ? 'dark' : 'light');
+}
+
+// Swipe Gestures
+let touchStartX = 0;
+let touchEndX = 0;
+
+function handleSwipe() {
+  const swipeDistance = touchEndX - touchStartX;
+  if (swipeDistance > 50) {
+    showView('input-view');
+  } else if (swipeDistance < -50) {
+    showView('summary-view');
+  }
+}
+
+document.addEventListener('touchstart', e => {
+  touchStartX = e.changedTouches[0].screenX;
+});
+
+document.addEventListener('touchend', e => {
+  touchEndX = e.changedTouches[0].screenX;
+  handleSwipe();
+});
+
+// View Switching
+function showView(viewId) {
+  document.querySelectorAll('.swipe-view').forEach(view => {
+    view.classList.remove('active');
+  });
+  document.getElementById(viewId).classList.add('active');
+}
+
+// Chat Modal
+function toggleChatModal() {
+  const modal = document.getElementById('chat-modal');
+  modal.classList.toggle('active');
+  if (modal.classList.contains('active')) {
+    addChatMessage('bot', 'Hi! Let’s split a bill. What’s the first participant’s name?');
+  }
+}
+
+function addChatMessage(sender, message) {
+  const messages = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = `chat-message ${sender}`;
+  div.textContent = message;
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function sendChatMessage() {
+  const input = document.getElementById('chat-input');
+  const message = input.value.trim();
+  if (!message) return;
+
+  addChatMessage('user', message);
+  input.value = '';
+
+  switch (chatState.step) {
+    case 'name':
+      if (!participants.includes(message)) {
+        participants.push(message);
+        splitConfigs[message] = { type: 'items', value: 0 };
+        updateParticipantList();
+        updateItemAssignedSelect();
+        updatePaymentPersonSelect();
+        updateSplitConfig();
+        addChatMessage('bot', `Added ${message}. Next participant’s name, or type "items" to add items.`);
+      } else {
+        addChatMessage('bot', 'Name already exists. Try another name.');
+      }
+      break;
+    case 'item-name':
+      chatState.currentItem = { name: message, cost: 0, assigned: '' };
+      addChatMessage('bot', `What’s the cost of ${message} (in ৳)?`);
+      chatState.step = 'item-cost';
+      break;
+    case 'item-cost':
+      const cost = parseFloat(message);
+      if (cost > 0) {
+        chatState.currentItem.cost = cost;
+        addChatMessage('bot', `Who’s this item for? (${participants.join(', ')}) or "unassigned".`);
+        chatState.step = 'item-assigned';
+      } else {
+        addChatMessage('bot', 'Please enter a valid cost.');
+      }
+      break;
+    case 'item-assigned':
+      if (participants.includes(message) || message.toLowerCase() === 'unassigned') {
+        chatState.currentItem.assigned = message.toLowerCase() === 'unassigned' ? '' : message;
+        items.push(chatState.currentItem);
+        updateItemList();
+        addChatMessage('bot', `Added ${chatState.currentItem.name}. Add another item ("item") or type "extras" for tip/tax.`);
+        chatState.step = 'items';
+        chatState.currentItem = null;
+      } else {
+        addChatMessage('bot', `Please select a valid participant or "unassigned".`);
+      }
+      break;
+    case 'extras-tip':
+      extras.tip = parseFloat(message) || 0;
+      addChatMessage('bot', 'Enter tax percentage (e.g., 5 for 5%).');
+      chatState.step = 'extras-tax';
+      break;
+    case 'extras-tax':
+      extras.tax = parseFloat(message) || 0;
+      addChatMessage('bot', 'Enter custom fee (in ৳).');
+      chatState.step = 'extras-fee';
+      break;
+    case 'extras-fee':
+      extras.customFee = parseFloat(message) || 0;
+      addChatMessage('bot', 'Extras updated. Type "payment" to add payments or "done" to finish.');
+      chatState.step = 'items';
+      break;
+    case 'payment-person':
+      if (participants.includes(message)) {
+        chatState.currentParticipant = message;
+        addChatMessage('bot', `How much did ${message} pay (in ৳)?`);
+        chatState.step = 'payment-amount';
+      } else {
+        addChatMessage('bot', 'Please select a valid participant.');
+      }
+      break;
+    case 'payment-amount':
+      const amount = parseFloat(message);
+      if (amount > 0) {
+        payments.push({ person: chatState.currentParticipant, amount });
+        updatePaymentList();
+        addChatMessage('bot', `Added payment. Add another payment ("payment") or type "done".`);
+        chatState.step = 'items';
+        chatState.currentParticipant = null;
+      } else {
+        addChatMessage('bot', 'Please enter a valid amount.');
+      }
+      break;
+  }
+
+  if (message.toLowerCase() === 'items') {
+    chatState.step = 'item-name';
+    addChatMessage('bot', 'What’s the name of the first item?');
+  } else if (message.toLowerCase() === 'extras') {
+    chatState.step = 'extras-tip';
+    addChatMessage('bot', 'Enter tip percentage (e.g., 10 for 10%).');
+  } else if (message.toLowerCase() === 'payment') {
+    chatState.step = 'payment-person';
+    addChatMessage('bot', `Who made a payment? (${participants.join(', ')})`);
+  } else if (message.toLowerCase() === 'done') {
+    chatState.step = 'name';
+    toggleChatModal();
+  }
 }
 
 // Initialize
@@ -358,4 +517,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setAutoTheme();
   }
   document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+  document.getElementById('chat-input').addEventListener('keypress', e => {
+    if (e.key === 'Enter') sendChatMessage();
+  });
 });
