@@ -127,6 +127,7 @@ section {
   overflow: hidden;
   width: 120px;
   text-align: center;
+  touch-action: manipulation; /* Improve mobile touch */
 }
 
 .neon-button:hover {
@@ -310,7 +311,7 @@ section {
 }
 
 #result-chart {
-  max-width: Shield;
+  max-width: 450px;
   margin: 30px auto;
   animation: scaleIn 0.6s ease-out;
 }
