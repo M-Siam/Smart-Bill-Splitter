@@ -11,8 +11,3 @@ A web application for splitting bills among multiple people, handling individual
 - LocalStorage for saving bill history
 - Downloadable PDF receipts
 - Interactive pie chart for contribution visualization
-
-## Setup
-1. Clone the repository:
-```bash
-git clone https://github.com/your-username/smart-bill-splitter.git
