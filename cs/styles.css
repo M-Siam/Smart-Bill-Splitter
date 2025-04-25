@@ -53,19 +53,16 @@ button:hover {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Light Mode */
 body.light {
     background: #f0f0f0;
     color: #333;
 }
 
-/* Dark Mode */
 body.dark {
     background: #222;
     color: #fff;
 }
 
-/* Responsive Design */
 @media (max-width: 600px) {
     .container {
         padding: 10px;
