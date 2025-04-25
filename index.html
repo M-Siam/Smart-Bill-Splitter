@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Bill Splitter</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" href="assets/favicon.ico">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Smart Bill Splitter</h1>
+            <button id="theme-toggle">Toggle Theme</button>
+        </header>
+        
+        <!-- Group Members -->
+        <section id="members">
+            <h2>Add Group Members</h2>
+            <input type="text" id="member-name" placeholder="Enter name">
+            <button onclick="addMember()">Add Member</button>
+            <ul id="member-list"></ul>
+        </section>
+
+        <!-- Items -->
+        <section id="items">
+            <h2>Add Items</h2>
+            <select id="item-member"></select>
+            <input type="text" id="item-name" placeholder="Item name">
+            <input type="number" id="item-cost" placeholder="Cost">
+            <button onclick="addItem()">Add Item</button>
+            <div id="items-list"></div>
+        </section>
+
+        <!-- Extra Charges -->
+        <section id="extras">
+            <h2>Extra Charges</h2>
+            <input type="number" id="tip" placeholder="Tip (%)">
+            <input type="number" id="tax" placeholder="Tax (%)">
+            <input type="text" id="custom-fee-name" placeholder="Custom fee name">
+            <input type="number" id="custom-fee-amount" placeholder="Amount">
+            <select id="custom-fee-split">
+                <option value="equal">Split Equally</option>
+                <option value="specific">Specific Person</option>
+            </select>
+            <select id="custom-fee-member"></select>
+            <button onclick="addCustomFee()">Add Fee</button>
+            <div id="fees-list"></div>
+        </section>
+
+        <!-- Payment -->
+        <section id="payment">
+            <h2>Who Paid?</h2>
+            <select id="payer"></select>
+            <input type="number" id="paid-amount" placeholder="Amount paid">
+            <button onclick="addPayment()">Add Payment</button>
+            <div id="payments-list"></div>
+        </section>
+
+        <!-- Split Options -->
+        <section id="split-options">
+            <h2>Split Type</h2>
+            <select id="split-type">
+                <option value="equal">Equal Split</option>
+                <option value="items">By Items</option>
+                <option value="custom">Custom Percentage</option>
+                <option value="fixed">Fixed Contribution</option>
+            </select>
+            <div id="custom-split-inputs"></div>
+        </section>
+
+        <!-- Results -->
+        <section id="results">
+            <button onclick="calculateSplit()">Split Bill</button>
+            <div id="result-cards"></div>
+            <canvas id="contribution-chart"></canvas>
+            <button onclick="downloadReceipt()">Download Receipt (PDF)</button>
+        </section>
+
+        <!-- History -->
+        <section id="history">
+            <h2>Previous Splits</h2>
+            <div id="history-list"></div>
+        </section>
+    </div>
+    <script src="js/app.js"></script>
+    <script src="js/chart.js"></script>
+    <script src="js/pdf.js"></script>
+</body>
+</html>
