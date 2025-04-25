@@ -5,7 +5,129 @@ const splitConfigs = {};
 const extras = { tip: 0, tax: 0, customFee: 0 };
 let chartInstance = null;
 let chatState = { step: 'name', currentParticipant: null, currentItem: null };
+let groupMode = false;
+let sessionId = null;
+let broadcastChannel = null;
 const colors = ['#00ddeb', '#40c4ff', '#b3e5fc', '#80deea', '#4dd0e1', '#26c6da'];
+
+// Generate unique session ID
+function generateSessionId() {
+  return 'xxxxxx'.replace(/[x]/g, () => Math.random().toString(36)[2]).toUpperCase();
+}
+
+// Initialize group mode
+function toggleGroupMode() {
+  groupMode = !groupMode;
+  const toggleButton = document.getElementById('group-mode-toggle');
+  toggleButton.textContent = `Group Mode: ${groupMode ? 'On' : 'Off'}`;
+  const joinSection = document.getElementById('join-section');
+  const participantSection = document.getElementById('participants');
+
+  if (groupMode) {
+    sessionId = generateSessionId();
+    broadcastChannel = new BroadcastChannel(`split_${sessionId}`);
+    broadcastChannel.onmessage = handleBroadcastMessage;
+    localStorage.setItem(`split_${sessionId}`, JSON.stringify({ participants, items, payments, extras }));
+    showQRModal();
+    const urlParams = new URLSearchParams(window.location.search);
+    if (!urlParams.has('session')) {
+      joinSection.style.display = 'none';
+      participantSection.style.display = 'block';
+    } else {
+      joinSection.style.display = 'block';
+      participantSection.style.display = 'none';
+      document.getElementById('items').style.display = 'block';
+      document.getElementById('extras').style.display = 'none';
+      document.getElementById('payments').style.display = 'none';
+      document.getElementById('split-options').style.display = 'none';
+    }
+  } else {
+    if (broadcastChannel) {
+      broadcastChannel.close();
+      broadcastChannel = null;
+    }
+    sessionId = null;
+    localStorage.removeItem(`split_${sessionId}`);
+    joinSection.style.display = 'none';
+    participantSection.style.display = 'block';
+    document.getElementById('items').style.display = 'block';
+    document.getElementById('extras').style.display = 'block';
+    document.getElementById('payments').style.display = 'block';
+    document.getElementById('split-options').style.display = 'block';
+  }
+  updateUI();
+}
+
+// Handle broadcast messages
+function handleBroadcastMessage(event) {
+  const { type, data } = event.data;
+  if (type === 'sync') {
+    participants.length = 0;
+    participants.push(...data.participants);
+    items.length = 0;
+    items.push(...data.items);
+    payments.length = 0;
+    payments.push(...data.payments);
+    Object.assign(extras, data.extras);
+    updateParticipantList();
+    updateItemList();
+    updatePaymentList();
+    updateItemAssignedSelect();
+    updatePaymentPersonSelect();
+    updateSplitConfig();
+    document.getElementById('tip-percent').value = extras.tip;
+    document.getElementById('tax-percent').value = extras.tax;
+    document.getElementById('custom-fee').value = extras.customFee;
+  }
+}
+
+// Sync data to all tabs
+function syncData() {
+  if (groupMode && broadcastChannel) {
+    const data = { participants, items, payments, extras };
+    localStorage.setItem(`split_${sessionId}`, JSON.stringify(data));
+    broadcastChannel.postMessage({ type: 'sync', data });
+  }
+}
+
+// Show QR code modal
+function showQRModal() {
+  const modal = document.getElementById('qr-modal');
+  const qrContainer = document.getElementById('qr-code');
+  qrContainer.innerHTML = '';
+  const sessionUrl = `${window.location.origin}${window.location.pathname}?session=${sessionId}`;
+  QRCode.toCanvas(sessionUrl, { width: 200, color: { dark: '#0a0a1f', light: '#e0f7ff' } }, (err, canvas) => {
+    if (err) {
+      qrContainer.textContent = `QR code generation failed. Share this link: ${monks.com ${sessionUrl}`;
+    } else {
+      qrContainer.appendChild(canvas);
+    }
+  });
+  modal.classList.add('active');
+}
+
+// Close QR modal
+function closeQRModal() {
+  document.getElementById('qr-modal').classList.remove('active');
+}
+
+// Join session
+function joinSession() {
+  const nameInput = document.getElementById('join-name');
+  const name = nameInput.value.trim();
+  if (name && !participants.includes(name)) {
+    participants.push(name);
+    splitConfigs[name] = { type: 'items', value: 0 };
+    nameInput.value = '';
+    syncData();
+    updateParticipantList();
+    updateItemAssignedSelect();
+    updatePaymentPersonSelect();
+    updateSplitConfig();
+    document.getElementById('join-section').style.display = 'none';
+    document.getElementById('items').style.display = 'block';
+  }
+}
 
 // Core Functionality
 function addParticipant() {
@@ -15,6 +137,7 @@ function addParticipant() {
     participants.push(name);
     splitConfigs[name] = { type: 'items', value: 0 };
     nameInput.value = '';
+    syncData();
     updateParticipantList();
     updateItemAssignedSelect();
     updatePaymentPersonSelect();
@@ -38,6 +161,7 @@ function removeParticipant(name) {
     participants.splice(index, 1);
     delete splitConfigs[name];
     items.filter(item => item.assigned === name).forEach(item => item.assigned = '');
+    syncData();
     updateParticipantList();
     updateItemAssignedSelect();
     updatePaymentPersonSelect();
@@ -57,6 +181,7 @@ function addItem() {
     nameInput.value = '';
     costInput.value = '';
     assignedSelect.value = '';
+    syncData();
     updateItemList();
   }
 }
@@ -74,6 +199,7 @@ function updateItemList() {
 
 function removeItem(index) {
   items.splice(index, 1);
+  syncData();
   updateItemList();
 }
 
@@ -93,6 +219,7 @@ function addPayment() {
     payments.push({ person, amount });
     personSelect.value = '';
     amountInput.value = '';
+    syncData();
     updatePaymentList();
   }
 }
@@ -109,6 +236,7 @@ function updatePaymentList() {
 
 function removePayment(index) {
   payments.splice(index, 1);
+  syncData();
   updatePaymentList();
 }
 
@@ -123,6 +251,7 @@ function updateExtras() {
   extras.tip = parseFloat(document.getElementById('tip-percent').value) || 0;
   extras.tax = parseFloat(document.getElementById('tax-percent').value) || 0;
   extras.customFee = parseFloat(document.getElementById('custom-fee').value) || 0;
+  syncData();
 }
 
 function updateSplitConfig() {
@@ -143,11 +272,13 @@ function updateSplitConfig() {
 
 function updateSplitType(name, type) {
   splitConfigs[name].type = type;
+  syncData();
   updateSplitConfig();
 }
 
 function updateSplitValue(name, value) {
   splitConfigs[name].value = parseFloat(value) || 0;
+  syncData();
 }
 
 function calculateSplit() {
@@ -268,6 +399,7 @@ function loadSplit() {
     payments.push(...splitData.payments);
     Object.assign(splitConfigs, splitData.splitConfigs);
     Object.assign(extras, splitData.extras);
+    syncData();
     updateParticipantList();
     updateItemList();
     updatePaymentList();
@@ -289,6 +421,10 @@ function resetApp() {
   extras.tax = 0;
   extras.customFee = 0;
   chatState = { step: 'name', currentParticipant: null, currentItem: null };
+  if (groupMode) {
+    toggleGroupMode();
+  }
+  syncData();
   updateParticipantList();
   updateItemList();
   updatePaymentList();
@@ -420,6 +556,7 @@ function sendChatMessage() {
       if (!participants.includes(message)) {
         participants.push(message);
         splitConfigs[message] = { type: 'items', value: 0 };
+        syncData();
         updateParticipantList();
         updateItemAssignedSelect();
         updatePaymentPersonSelect();
@@ -448,6 +585,7 @@ function sendChatMessage() {
       if (participants.includes(message) || message.toLowerCase() === 'unassigned') {
         chatState.currentItem.assigned = message.toLowerCase() === 'unassigned' ? '' : message;
         items.push(chatState.currentItem);
+        syncData();
         updateItemList();
         addChatMessage('bot', `Added ${chatState.currentItem.name}. Add another item ("item") or type "extras" for tip/tax.`);
         chatState.step = 'items';
@@ -460,16 +598,19 @@ function sendChatMessage() {
       extras.tip = parseFloat(message) || 0;
       addChatMessage('bot', 'Enter tax percentage (e.g., 5 for 5%).');
       chatState.step = 'extras-tax';
+      syncData();
       break;
     case 'extras-tax':
       extras.tax = parseFloat(message) || 0;
       addChatMessage('bot', 'Enter custom fee (in ৳).');
       chatState.step = 'extras-fee';
+      syncData();
       break;
     case 'extras-fee':
       extras.customFee = parseFloat(message) || 0;
       addChatMessage('bot', 'Extras updated. Type "payment" to add payments or "done" to finish.');
       chatState.step = 'items';
+      syncData();
       break;
     case 'payment-person':
       if (participants.includes(message)) {
@@ -484,6 +625,7 @@ function sendChatMessage() {
       const amount = parseFloat(message);
       if (amount > 0) {
         payments.push({ person: chatState.currentParticipant, amount });
+        syncData();
         updatePaymentList();
         addChatMessage('bot', `Added payment. Add another payment ("payment") or type "done".`);
         chatState.step = 'items';
@@ -521,4 +663,33 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('chat-input').addEventListener('keypress', e => {
     if (e.key === 'Enter') sendChatMessage();
   });
+
+  // Check for session ID in URL
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.has('session')) {
+    sessionId = urlParams.get('session');
+    groupMode = true;
+    broadcastChannel = new BroadcastChannel(`split_${sessionId}`);
+    broadcastChannel.onmessage = handleBroadcastMessage;
+    const data = localStorage.getItem(`split_${sessionId}`);
+    if (data) {
+      const splitData = JSON.parse(data);
+      participants.push(...splitData.participants);
+      items.push(...splitData.items);
+      payments.push(...splitData.payments);
+      Object.assign(extras, splitData.extras);
+      updateParticipantList();
+      updateItemList();
+      updatePaymentList();
+      updateItemAssignedSelect();
+      updatePaymentPersonSelect();
+      updateSplitConfig();
+    }
+    document.getElementById('group-mode-toggle').textContent = 'Group Mode: On';
+    document.getElementById('join-section').style.display = 'block';
+    document.getElementById('participants').style.display = 'none';
+    document.getElementById('extras').style.display = 'none';
+    document.getElementById('payments').style.display = 'none';
+    document.getElementById('split-options').style.display = 'none';
+  }
 });
