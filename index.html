@@ -7,12 +7,14 @@
   <link rel="stylesheet" href="css/styles.css">
   <link rel="icon" href="assets/favicon.ico">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 </head>
 <body>
   <div class="container">
     <header class="animate-header">
       <h1>Smart Bill Splitter</h1>
-      <div class="theme-toggle">
+      <div class="header-controls">
+        <button id="group-mode-toggle" class="neon-button" onclick="toggleGroupMode()">Group Mode: Off</button>
         <button id="theme-toggle" class="neon-button">🌙</button>
       </div>
     </header>
@@ -20,6 +22,15 @@
     <!-- Main Content with Swipeable Views -->
     <div class="swipe-container">
       <div class="swipe-view active" id="input-view">
+        <!-- Participant Join Section (for group mode) -->
+        <section id="join-section" class="animate-section" style="display: none;">
+          <h2>Join Group Split</h2>
+          <div class="input-group">
+            <input type="text" id="join-name" placeholder="Your name" class="neon-input">
+            <button onclick="joinSession()" class="neon-button">Join</button>
+          </div>
+        </section>
+
         <!-- Participants Section -->
         <section id="participants" class="animate-section">
           <h2>Participants</h2>
@@ -46,7 +57,7 @@
         <section id="extras" class="animate-section">
           <h2>Extra Charges</h2>
           <div class="input-group">
-            <input type="number" id="tip-percent" placeholder="Tip %" step="0.1" class="neon-input">
+            <input type="number" id="tip-percent" placeholder="Tip %" step="0.1 " class="neon-input">
             <input type="number" id="tax-percent" placeholder="Tax %" step="0.1" class="neon-input">
             <input type="number" id="custom-fee" placeholder="Custom Fee (৳)" step="0.01" class="neon-input">
             <button onclick="updateExtras()" class="neon-button">Update</button>
@@ -78,6 +89,16 @@
           <div id="result-list" class="card-list"></div>
           <canvas id="result-chart"></canvas>
         </section>
+      </div>
+    </div>
+
+    <!-- QR Code Modal -->
+    <div class="modal" id="qr-modal">
+      <div class="modal-content animate-modal">
+        <h2>Group Split QR Code</h2>
+        <p>Scan this QR code to join the session.</p>
+        <div id="qr-code" class="qr-container"></div>
+        <button class="neon-button modal-close" onclick="closeQRModal()">Close</button>
       </div>
     </div>
 
