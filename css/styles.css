@@ -1,21 +1,23 @@
 :root {
-  --primary: #6e44ff;
-  --secondary: #ef476f;
-  --background: #f8f9fa;
-  --card-bg: rgba(255, 255, 255, 0.2);
-  --text: #212529;
-  --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  --glow: 0 0 10px rgba(110, 68, 255, 0.5);
+  --neon-blue: #00ddeb;
+  --neon-white: #e0f7ff;
+  --black: #0a0a1f;
+  --card-bg: rgba(10, 10, 31, 0.3);
+  --text: #e0f7ff;
+  --shadow: 0 8px 32px rgba(0, 221, 235, 0.2);
+  --glow: 0 0 12px rgba(0, 221, 235, 0.6);
+  --background: linear-gradient(135deg, #0a0a1f, #1e1e3a);
 }
 
 [data-theme="dark"] {
-  --primary: #a29bfe;
-  --secondary: #ff7675;
-  --background: #1e1e2f;
-  --card-bg: rgba(30, 30, 47, 0.3);
-  --text: #e0e0e0;
-  --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  --glow: 0 0 10px rgba(162, 155, 254, 0.5);
+  --neon-blue: #40c4ff;
+  --neon-white: #b3e5fc;
+  --black: #12122b;
+  --card-bg: rgba(18, 18, 43, 0.4);
+  --text: #b3e5fc;
+  --shadow: 0 8px 32px rgba(64, 196, 255, 0.3);
+  --glow: 0 0 12px rgba(64, 196, 255, 0.7);
+  --background: linear-gradient(135deg, #12122b, #2a2a4f);
 }
 
 * {
@@ -31,7 +33,7 @@ body {
   transition: all 0.5s ease;
   min-height: 100vh;
   padding: 20px;
-  padding-bottom: 80px; /* Space for bottom nav */
+  padding-bottom: 100px; /* Space for bottom nav */
 }
 
 .container {
@@ -43,95 +45,117 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
 }
 
 h1 {
-  font-size: 2.2rem;
-  color: var(--primary);
+  font-size: 2.5rem;
+  color: var(--neon-blue);
   text-shadow: var(--glow);
+  animation: neonFlicker 3s infinite;
+}
+
+@keyframes neonFlicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.95; }
 }
 
 h2 {
-  font-size: 1.5rem;
-  margin-bottom: 15px;
-  color: var(--secondary);
+  font-size: 1.8rem;
+  color: var(--neon-white);
+  margin-bottom: 20px;
+  text-shadow: 0 0 8px rgba(224, 247, 255, 0.5);
 }
 
 section {
-  margin-bottom: 30px;
-  animation: slideIn 0.5s ease-out;
+  margin-bottom: 40px;
+}
+
+.animate-section {
+  animation: slideIn 0.6s ease-out;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-30px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 .input-group {
   display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
+  gap: 12px;
+  margin-bottom: 20px;
   flex-wrap: wrap;
 }
 
-input, select {
+.neon-input {
   padding: 12px;
-  border: 2px solid var(--primary);
+  border: 2px solid var(--neon-blue);
   border-radius: 12px;
   background: var(--card-bg);
   color: var(--text);
   font-size: 1rem;
   transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
   flex: 1;
-  min-width: 120px;
+  min-width: 140px;
 }
 
-input:focus, select:focus {
+.neon-input:focus {
   outline: none;
   box-shadow: var(--glow);
-  border-color: var(--secondary);
+  border-color: var(--neon-white);
+  transform: scale(1.02);
 }
 
-button {
+.neon-button {
   padding: 12px 24px;
   border: none;
-  background: var(--primary);
-  color: white;
+  background: var(--neon-blue);
+  color: var(--black);
   border-radius: 12px;
   cursor: pointer;
   font-size: 1rem;
+  font-weight: 600;
   transition: all 0.3s ease;
+  box-shadow: var(--glow);
   position: relative;
   overflow: hidden;
+  width: 120px; /* Fixed button size */
+  text-align: center;
 }
 
-button:hover {
-  transform: translateY(-2 Ascendancy;
-  box-shadow: var(--glow);
+.neon-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 20px rgba(0, 221, 235, 0.8);
+  background: var(--neon-white);
 }
 
-button.cta {
-  background: var(--secondary);
-  animation: pulse 2s infinite;
+.neon-button.cta {
+  background: var(--neon-white);
+  color: var(--black);
+  animation: pulseNeon 1.5s infinite;
 }
 
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
+@keyframes pulseNeon {
+  0% { transform: scale(1); box-shadow: var(--glow); }
+  50% { transform: scale(1.05); box-shadow: 0 0 25px rgba(0, 221, 235, 1); }
+  100% { transform: scale(1); box-shadow: var(--glow); }
 }
 
-button::after {
+.neon-button::after {
   content: '';
   position: absolute;
   top: 50%;
   left: 50%;
   width: 0;
   height: 0;
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.4);
   border-radius: 50%;
   transform: translate(-50%, -50%);
   transition: all 0.5s ease;
 }
 
-button:hover::after {
+.neon-button:hover::after {
   width: 200%;
   height: 200%;
 }
@@ -139,26 +163,28 @@ button:hover::after {
 .card-list {
   display: grid;
   gap: 15px;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
 }
 
 .card {
   background: var(--card-bg);
-  padding: 15px;
+  padding: 20px;
   border-radius: 16px;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
   box-shadow: var(--shadow);
-  transition: transform 0.3s ease;
+  border: 1px solid rgba(0, 221, 235, 0.3);
+  transition: all 0.3s ease;
   animation: cardEnter 0.5s ease-out;
 }
 
 .card:hover {
-  transform: translateY(-5px) scale(1.02);
+  transform: translateY(-5px) scale(1.03);
+  box-shadow: 0 0 20px rgba(0, 221, 235, 0.5);
 }
 
 @keyframes cardEnter {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(30px) scale(0.9); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .swipe-container {
@@ -186,14 +212,24 @@ button:hover::after {
   left: 0;
   right: 0;
   background: var(--card-bg);
-  backdrop-filter: blur(10px);
-  padding: 10px;
+  backdrop-filter: blur(12px);
+  padding: 12px;
   display: flex;
   gap: 10px;
   justify-content: center;
   flex-wrap: wrap;
   box-shadow: var(--shadow);
+  border-top: 1px solid rgba(0, 221, 235, 0.3);
   z-index: 1000;
+}
+
+.animate-nav {
+  animation: slideUp 0.6s ease-out;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(100px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .modal {
@@ -203,7 +239,7 @@ button:hover::after {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(10, 10, 31, 0.8);
   z-index: 2000;
 }
 
@@ -215,63 +251,86 @@ button:hover::after {
 
 .modal-content {
   background: var(--card-bg);
-  padding: 20px;
+  padding: 25px;
   border-radius: 16px;
-  max-width: 500px;
+  max-width: 550px;
   width: 90%;
   box-shadow: var(--shadow);
-  animation: modalEnter 0.3s ease-out;
+  border: 1px solid var(--neon-blue);
+}
+
+.animate-modal {
+  animation: modalEnter 0.4s ease-out;
 }
 
 @keyframes modalEnter {
-  from { opacity: 0; transform: scale(0.8); }
-  to { opacity: 1; transform: scale(1); }
+  from { opacity: 0; transform: scale(0.7) rotate(5deg); }
+  to { opacity: 1; transform: scale(1) rotate(0); }
 }
 
 #chat-messages {
-  max-height: 300px;
+  max-height: 320px;
   overflow-y: auto;
-  margin-bottom: 15px;
-  padding: 10px;
+  margin-bottom: 20px;
+  padding: 15px;
   border-radius: 12px;
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(0, 221, 235, 0.2);
 }
 
 .chat-message {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  animation: fadeIn 0.3s ease-out;
 }
 
 .chat-message.bot {
-  color: var(--secondary);
+  color: var(--neon-blue);
+  text-shadow: 0 0 5px rgba(0, 221, 235, 0.5);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .modal-close {
-  background: var(--secondary);
   width: 100%;
-  margin-top: 10px;
+  margin-top: 15px;
 }
 
 #result-chart {
-  max-width: 400px;
-  margin: 20px auto;
+  max-width: 450px;
+  margin: 30px auto;
+  animation: scaleIn 0.6s ease-out;
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 @media (max-width: 768px) {
   body {
     padding: 15px;
-    padding-bottom: 100px;
+    padding-bottom: 120px;
   }
 
   h1 {
-    font-size: 1.8rem;
+    font-size: 2rem;
   }
 
   h2 {
-    font-size: 1.3rem;
+    font-size: 1.5rem;
   }
 
   .input-group {
     flex-direction: column;
+  }
+
+  .neon-button {
+    width: 100px;
+    padding: 10px;
+    font-size: 0.9rem;
   }
 
   .card-list {
@@ -279,13 +338,8 @@ button:hover::after {
   }
 
   .bottom-nav {
-    padding: 8px;
+    padding: 10px;
     gap: 8px;
-  }
-
-  button {
-    padding: 10px 16px;
-    font-size: 0.9rem;
   }
 }
 
@@ -295,10 +349,15 @@ button:hover::after {
   }
 
   .card {
-    padding: 12px;
+    padding: 15px;
   }
 
   #result-chart {
     max-width: 100%;
+  }
+
+  .neon-button {
+    width: 80px;
+    font-size: 0.85rem;
   }
 }
