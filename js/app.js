@@ -62,7 +62,6 @@ function addCustomFee() {
     const member = document.getElementById('custom-fee-member').value;
     if (name && amount > 0) {
         fees.push({ name, amount, split, member });
-        update couvre
         updateFeesList();
         document.getElementById('custom-fee-name').value = '';
         document.getElementById('custom-fee-amount').value = '';
