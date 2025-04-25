@@ -5,7 +5,7 @@ const splitConfigs = {};
 const extras = { tip: 0, tax: 0, customFee: 0 };
 let chartInstance = null;
 let chatState = { step: 'name', currentParticipant: null, currentItem: null };
-const colors = ['#ef476f', '#ffd166', '#06d6a0', '#118ab2', '#073b4c', '#8338ec'];
+const colors = ['#00ddeb', '#40c4ff', '#b3e5fc', '#80deea', '#4dd0e1', '#26c6da'];
 
 // Core Functionality
 function addParticipant() {
@@ -27,7 +27,7 @@ function updateParticipantList() {
   list.innerHTML = participants.map((name, i) => `
     <div class="card">
       <p>${name}</p>
-      <button onclick="removeParticipant('${name}')">Remove</button>
+      <button onclick="removeParticipant('${name}')" class="neon-button">Remove</button>
     </div>
   `).join('');
 }
@@ -67,7 +67,7 @@ function updateItemList() {
     <div class="card">
       <p>${item.name}: ৳${item.cost.toFixed(2)}</p>
       <p>Assigned: ${item.assigned || 'Unassigned'}</p>
-      <button onclick="removeItem(${i})">Remove</button>
+      <button onclick="removeItem(${i})" class="neon-button">Remove</button>
     </div>
   `).join('');
 }
@@ -102,7 +102,7 @@ function updatePaymentList() {
   list.innerHTML = payments.map((payment, i) => `
     <div class="card">
       <p>${payment.person}: ৳${payment.amount.toFixed(2)}</p>
-      <button onclick="removePayment(${i})">Remove</button>
+      <button onclick="removePayment(${i})" class="neon-button">Remove</button>
     </div>
   `).join('');
 }
@@ -130,13 +130,13 @@ function updateSplitConfig() {
   configDiv.innerHTML = participants.map(name => `
     <div class="card">
       <p>${name}</p>
-      <select onchange="updateSplitType('${name}', this.value)">
+      <select onchange="updateSplitType('${name}', this.value)" class="neon-input">
         <option value="items" ${splitConfigs[name].type === 'items' ? 'selected' : ''}>Items-Based</option>
         <option value="equal" ${splitConfigs[name].type === 'equal' ? 'selected' : ''}>Equal</option>
         <option value="percent" ${splitConfigs[name].type === 'percent' ? 'selected' : ''}>Percentage</option>
         <option value="fixed" ${splitConfigs[name].type === 'fixed' ? 'selected' : ''}>Fixed</option>
       </select>
-      <input type="number" value="${splitConfigs[name].value}" onchange="updateSplitValue('${name}', this.value)" ${splitConfigs[name].type === 'items' ? 'disabled' : ''} step="0.01">
+      <input type="number" value="${splitConfigs[name].value}" onchange="updateSplitValue('${name}', this.value)" ${splitConfigs[name].type === 'items' ? 'disabled' : ''} step="0.01" class="neon-input">
     </div>
   `).join('');
 }
@@ -211,7 +211,7 @@ function calculateSplit() {
 function displayResults(results) {
   const list = document.getElementById('result-list');
   list.innerHTML = participants.map((name, i) => `
-    <div class="card" style="border-left: 5px solid ${colors[i % colors.length]}">
+    <div class="card" style="border-left: 6px solid ${colors[i % colors.length]}">
       <p><strong>${name}</strong></p>
       <p>Items: ৳${results[name].items.toFixed(2)}</p>
       <p>Share: ৳${results[name].split.toFixed(2)}</p>
@@ -232,14 +232,15 @@ function updateChart(results) {
       datasets: [{
         data: participants.map(name => results[name].split),
         backgroundColor: colors.slice(0, participants.length),
-        borderWidth: 1
+        borderWidth: 1,
+        borderColor: '#0a0a1f'
       }]
     },
     options: {
       responsive: true,
       plugins: {
-        legend: { position: 'top' },
-        title: { display: true, text: 'Split Distribution' }
+        legend: { position: 'top', labels: { color: '#e0f7ff' } },
+        title: { display: true, text: 'Split Distribution', color: '#e0f7ff' }
       },
       animation: {
         animateScale: true,
