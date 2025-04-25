@@ -10,10 +10,10 @@
 </head>
 <body>
   <div class="container">
-    <header>
+    <header class="animate-header">
       <h1>Smart Bill Splitter</h1>
       <div class="theme-toggle">
-        <button id="theme-toggle">🌙</button>
+        <button id="theme-toggle" class="neon-button">🌙</button>
       </div>
     </header>
 
@@ -21,51 +21,51 @@
     <div class="swipe-container">
       <div class="swipe-view active" id="input-view">
         <!-- Participants Section -->
-        <section id="participants">
+        <section id="participants" class="animate-section">
           <h2>Participants</h2>
           <div class="input-group">
-            <input type="text" id="participant-name" placeholder="Enter name">
-            <button onclick="addParticipant()">Add</button>
+            <input type="text" id="participant-name" placeholder="Enter name" class="neon-input">
+            <button onclick="addParticipant()" class="neon-button">Add</button>
           </div>
           <div id="participant-list" class="card-list"></div>
         </section>
 
         <!-- Items Section -->
-        <section id="items">
+        <section id="items" class="animate-section">
           <h2>Items</h2>
           <div class="input-group">
-            <input type="text" id="item-name" placeholder="Item name">
-            <input type="number" id="item-cost" placeholder="Cost (৳)" step="0.01">
-            <select id="item-assigned"></select>
-            <button onclick="addItem()">Add</button>
+            <input type="text" id="item-name" placeholder="Item name" class="neon-input">
+            <input type="number" id="item-cost" placeholder="Cost (৳)" step="0.01" class="neon-input">
+            <select id="item-assigned" class="neon-input"></select>
+            <button onclick="addItem()" class="neon-button">Add</button>
           </div>
           <div id="item-list" class="card-list"></div>
         </section>
 
         <!-- Extra Charges -->
-        <section id="extras">
+        <section id="extras" class="animate-section">
           <h2>Extra Charges</h2>
           <div class="input-group">
-            <input type="number" id="tip-percent" placeholder="Tip %" step="0.1">
-            <input type="number" id="tax-percent" placeholder="Tax %" step="0.1">
-            <input type="number" id="custom-fee" placeholder="Custom Fee (৳)" step="0.01">
-            <button onclick="updateExtras()">Update</button>
+            <input type="number" id="tip-percent" placeholder="Tip %" step="0.1" class="neon-input">
+            <input type="number" id="tax-percent" placeholder="Tax %" step="0.1" class="neon-input">
+            <input type="number" id="custom-fee" placeholder="Custom Fee (৳)" step="0.01" class="neon-input">
+            <button onclick="updateExtras()" class="neon-button">Update</button>
           </div>
         </section>
 
         <!-- Payments -->
-        <section id="payments">
+        <section id="payments" class="animate-section">
           <h2>Payments Made</h2>
           <div class="input-group">
-            <select id="payment-person"></select>
-            <input type="number" id="payment-amount" placeholder="Amount Paid (৳)" step="0.01">
-            <button onclick="addPayment()">Add</button>
+            <select id="payment-person" class="neon-input"></select>
+            <input type="number" id="payment-amount" placeholder="Amount Paid (৳)" step="0.01" class="neon-input">
+            <button onclick="addPayment()" class="neon-button">Add</button>
           </div>
           <div id="payment-list" class="card-list"></div>
         </section>
 
         <!-- Split Options -->
-        <section id="split-options">
+        <section id="split-options" class="animate-section">
           <h2>Split Options</h2>
           <div id="split-config" class="card-list"></div>
         </section>
@@ -73,7 +73,7 @@
 
       <div class="swipe-view" id="summary-view">
         <!-- Results -->
-        <section id="results">
+        <section id="results" class="animate-section">
           <h2>Results</h2>
           <div id="result-list" class="card-list"></div>
           <canvas id="result-chart"></canvas>
@@ -83,27 +83,27 @@
 
     <!-- Chat Modal -->
     <div class="modal" id="chat-modal">
-      <div class="modal-content">
+      <div class="modal-content animate-modal">
         <h2>Chat Input</h2>
         <div id="chat-messages"></div>
         <div class="input-group">
-          <input type="text" id="chat-input" placeholder="Type here...">
-          <button onclick="sendChatMessage()">Send</button>
+          <input type="text" id="chat-input" placeholder="Type here..." class="neon-input">
+          <button onclick="sendChatMessage()" class="neon-button">Send</button>
         </div>
-        <button class="modal-close" onclick="toggleChatModal()">Close</button>
+        <button class="neon-button modal-close" onclick="toggleChatModal()">Close</button>
       </div>
     </div>
 
     <!-- Fixed Bottom Navigation -->
-    <nav class="bottom-nav">
-      <button onclick="showView('input-view')">Input</button>
-      <button onclick="showView('summary-view')">Summary</button>
-      <button onclick="toggleChatModal()">Chat</button>
-      <button class="cta" onclick="calculateSplit()">Split Now</button>
-      <button onclick="downloadReceipt()">Receipt</button>
-      <button onclick="saveSplit()">Save</button>
-      <button onclick="loadSplit()">Load</button>
-      <button onclick="resetApp()">Reset</button>
+    <nav class="bottom-nav animate-nav">
+      <button onclick="showView('input-view')" class="neon-button">Input</button>
+      <button onclick="showView('summary-view')" class="neon-button">Summary</button>
+      <button onclick="toggleChatModal()" class="neon-button">Chat</button>
+      <button onclick="calculateSplit()" class="neon-button cta">Split Now</button>
+      <button onclick="downloadReceipt()" class="neon-button">Receipt</button>
+      <button onclick="saveSplit()" class="neon-button">Save</button>
+      <button onclick="loadSplit()" class="neon-button">Load</button>
+      <button onclick="resetApp()" class="neon-button">Reset</button>
     </nav>
   </div>
 
