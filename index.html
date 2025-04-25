@@ -1,43 +1,4 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -52,78 +13,98 @@
     <header>
       <h1>Smart Bill Splitter</h1>
       <div class="theme-toggle">
-        <button id="theme-toggle">Toggle Theme</button>
+        <button id="theme-toggle">🌙</button>
       </div>
     </header>
 
-    <!-- Participants Section -->
-    <section id="participants">
-      <h2>Participants</h2>
-      <div class="input-group">
-        <input type="text" id="participant-name" placeholder="Enter name">
-        <button onclick="addParticipant()">Add</button>
+    <!-- Main Content with Swipeable Views -->
+    <div class="swipe-container">
+      <div class="swipe-view active" id="input-view">
+        <!-- Participants Section -->
+        <section id="participants">
+          <h2>Participants</h2>
+          <div class="input-group">
+            <input type="text" id="participant-name" placeholder="Enter name">
+            <button onclick="addParticipant()">Add</button>
+          </div>
+          <div id="participant-list" class="card-list"></div>
+        </section>
+
+        <!-- Items Section -->
+        <section id="items">
+          <h2>Items</h2>
+          <div class="input-group">
+            <input type="text" id="item-name" placeholder="Item name">
+            <input type="number" id="item-cost" placeholder="Cost (৳)" step="0.01">
+            <select id="item-assigned"></select>
+            <button onclick="addItem()">Add</button>
+          </div>
+          <div id="item-list" class="card-list"></div>
+        </section>
+
+        <!-- Extra Charges -->
+        <section id="extras">
+          <h2>Extra Charges</h2>
+          <div class="input-group">
+            <input type="number" id="tip-percent" placeholder="Tip %" step="0.1">
+            <input type="number" id="tax-percent" placeholder="Tax %" step="0.1">
+            <input type="number" id="custom-fee" placeholder="Custom Fee (৳)" step="0.01">
+            <button onclick="updateExtras()">Update</button>
+          </div>
+        </section>
+
+        <!-- Payments -->
+        <section id="payments">
+          <h2>Payments Made</h2>
+          <div class="input-group">
+            <select id="payment-person"></select>
+            <input type="number" id="payment-amount" placeholder="Amount Paid (৳)" step="0.01">
+            <button onclick="addPayment()">Add</button>
+          </div>
+          <div id="payment-list" class="card-list"></div>
+        </section>
+
+        <!-- Split Options -->
+        <section id="split-options">
+          <h2>Split Options</h2>
+          <div id="split-config" class="card-list"></div>
+        </section>
       </div>
-      <div id="participant-list" class="card-list"></div>
-    </section>
 
-    <!-- Items Section -->
-    <section id="items">
-      <h2>Items</h2>
-      <div class="input-group">
-        <input type="text" id="item-name" placeholder="Item name">
-        <input type="number" id="item-cost" placeholder="Cost" step="0.01">
-        <select id="item-assigned"></select>
-        <button onclick="addItem()">Add</button>
+      <div class="swipe-view" id="summary-view">
+        <!-- Results -->
+        <section id="results">
+          <h2>Results</h2>
+          <div id="result-list" class="card-list"></div>
+          <canvas id="result-chart"></canvas>
+        </section>
       </div>
-      <div id="item-list" class="card-list"></div>
-    </section>
+    </div>
 
-    <!-- Extra Charges -->
-    <section id="extras">
-      <h2>Extra Charges</h2>
-      <div class="input-group">
-        <input type="number" id="tip-percent" placeholder="Tip %" step="0.1">
-        <input type="number" id="tax-percent" placeholder="Tax %" step="0.1">
-        <input type="number" id="custom-fee" placeholder="Custom Fee" step="0.01">
-        <button onclick="updateExtras()">Update</button>
+    <!-- Chat Modal -->
+    <div class="modal" id="chat-modal">
+      <div class="modal-content">
+        <h2>Chat Input</h2>
+        <div id="chat-messages"></div>
+        <div class="input-group">
+          <input type="text" id="chat-input" placeholder="Type here...">
+          <button onclick="sendChatMessage()">Send</button>
+        </div>
+        <button class="modal-close" onclick="toggleChatModal()">Close</button>
       </div>
-    </section>
+    </div>
 
-    <!-- Payments -->
-    <section id="payments">
-      <h2>Payments Made</h2>
-      <div class="input-group">
-        <select id="payment-person"></select>
-        <input type="number" id="payment-amount" placeholder="Amount Paid" step="0.01">
-        <button onclick="addPayment()">Add</button>
-      </div>
-      <div id="payment-list" class="card-list"></div>
-    </section>
-
-    <!-- Split Options -->
-    <section id="split-options">
-      <h2>Split Options</h2>
-      <div id="split-config" class="card-list"></div>
-    </section>
-
-    <!-- Results -->
-    <section id="results">
-      <h2>Results</h2>
-      <div id="result-list" class="card-list"></div>
-      <canvas id="result-chart"></canvas>
-    </section>
-
-    <!-- Actions -->
-    <section id="actions">
-      <h2>Actions</h2>
-      <div class="button-group">
-        <button onclick="calculateSplit()">Calculate</button>
-        <button onclick="saveSplit()">Save Split</button>
-        <button onclick="loadSplit()">Load Split</button>
-        <button onclick="downloadReceipt()">Download Receipt</button>
-        <button onclick="resetApp()">Reset</button>
-      </div>
-    </section>
+    <!-- Fixed Bottom Navigation -->
+    <nav class="bottom-nav">
+      <button onclick="showView('input-view')">Input</button>
+      <button onclick="showView('summary-view')">Summary</button>
+      <button onclick="toggleChatModal()">Chat</button>
+      <button class="cta" onclick="calculateSplit()">Split Now</button>
+      <button onclick="downloadReceipt()">Receipt</button>
+      <button onclick="saveSplit()">Save</button>
+      <button onclick="loadSplit()">Load</button>
+      <button onclick="resetApp()">Reset</button>
+    </nav>
   </div>
 
   <script src="js/main.js"></script>
