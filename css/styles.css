@@ -127,7 +127,7 @@ section {
   overflow: hidden;
   width: 120px;
   text-align: center;
-  touch-action: manipulation; /* Improve mobile touch */
+  touch-action: manipulation;
 }
 
 .neon-button:hover {
