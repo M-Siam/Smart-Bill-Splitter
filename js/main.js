@@ -64,7 +64,7 @@ function toggleGroupMode() {
     updateUI();
   } catch (e) {
     console.error('Error in toggleGroupMode:', e);
-    alert('An error occurred. Please check the Console for details.');
+    alert('Failed to toggle Group Mode. Check the Console for details.');
   }
 }
 
@@ -115,18 +115,24 @@ function showQRModal() {
     const qrContainer = document.getElementById('qr-code');
     qrContainer.innerHTML = '';
     const sessionUrl = `${window.location.origin}${window.location.pathname}?session=${sessionId}`;
-    QRCode.toCanvas(sessionUrl, { width: 200, color: { dark: '#0a0a1f', light: '#e0f7ff' } }, (err, canvas) => {
-      if (err) {
-        console.error('QR code generation failed:', err);
-        qrContainer.textContent = `QR code generation failed. Share this link: ${sessionUrl}`;
-      } else {
-        qrContainer.appendChild(canvas);
-      }
-    });
+    
+    if (typeof QRCode === 'undefined') {
+      console.error('QRCode.js not loaded');
+      qrContainer.textContent = `QR code generation failed. Share this link: ${sessionUrl}`;
+    } else {
+      QRCode.toCanvas(sessionUrl, { width: 200, color: { dark: '#0a0a1f', light: '#e0f7ff' } }, (err, canvas) => {
+        if (err) {
+          console.error('QR code generation failed:', err);
+          qrContainer.textContent = `QR code generation failed. Share this link: ${sessionUrl}`;
+        } else {
+          qrContainer.appendChild(canvas);
+        }
+      });
+    }
     modal.classList.add('active');
   } catch (e) {
     console.error('Error in showQRModal:', e);
-    alert('Failed to generate QR code. Check the Console for details.');
+    alert('Failed to show QR code modal. Check the Console for details.');
   }
 }
 
